@@ -1,0 +1,87 @@
+Basics of PostgreSQL 
+
+PostgreSQL, also known as Postgres, is a free and open-source relational database management system emphasizing extensibility and technical standards compliance. 
+It is designed to handle a range of workloads, from single machines to data warehouses or Web services with many concurrent users. 
+It is written in C programming language.
+
+Tools Used:
+Pgadmin 4
+
+Important Concepts:
+
+1. Schema:
+A schema is a named collection of tables. A schema can also contain views, indexes, sequences, data types, operators, and functions.
+Schema are analogous to directories at the operating system level, except that schema cannot be nested.
+
+CREATE SCHEMA "Users"
+AUTHORIZATION postgres;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------	
+2. Table:
+A table is a collection of rows and columns.
+A table has a specified number of columns, but can have any number of rows.
+
+Example:
+CREATE TABLE "SysAdmin"."Menu"
+(
+    id smallint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 32767 CACHE 1 ),
+    menu_name character varying(30) COLLATE pg_catalog."default",
+    menu_url character varying(50) COLLATE pg_catalog."default",
+    is_active boolean,
+    modified_on timestamp without time zone,
+    modified_by integer,
+    parent_id smallint,
+    css character varying(50) COLLATE pg_catalog."default",
+    display_order smallint
+)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Views:
+Views are a logical virtual table created by “select query” but the result is not stored anywhere in the disk and every time we need to fire the query when we need data,
+so always we get updated or latest data from original tables.
+
+Example:
+Create View "SysAdmin"."Menu_View" As Select * from "SysAdmin"."Menu"
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. Materialized Views:
+Materialized views are also the logical view of our data-driven by the select query but the result of the query will get stored in the table or disk, also the definition of 
+the query will also store in the database.
+
+Example: 
+Create Materialized View "SysAdmin"."Menu_View" As Select * from "SysAdmin"."Menu"
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------- 
+5. Foreign Table
+
+If we want to access a table present in another database ,we go for Foreign Table.
+This is achieved through Foreign Data Wrapper.(FDW)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+6. Stored Function and Stored Procedure:
+Traditionally, PostgreSQL has provided all the means to write functions (which were called as stored procedures) however, in a function you cannot run transactions. 
+All you can really use is exceptions, which are basically save points. Inside a function body you cannot just commit a transaction or open a new one.
+Stored Procedure is introduced in PostgreSQL 11 which support transaction and does not return any value.
+Functions are created with the FUNCTION keyword and procedures are created with the PROCEDURE keyword.
+Stored procedures do not return a value, but stored functions return a single value. The stored function's return value can be used in SELECT statements.
+
+Stored Function Syntax:
+Create or replace Function Schema_Name.Function_Name (values data-type)
+returns table(values data-types)
+as $body$
+
+BEGIN
+...
+...
+END
+
+$body$
+language plpgsql;
+
+To execute stored Function:
+Select Schema_Name.Function_Name(values)
+OR
+Select * from Schema_Name.Function_Name(values)
+
