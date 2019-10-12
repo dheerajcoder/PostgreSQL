@@ -1,0 +1,75 @@
+Foreign Data Wrapper:
+
+This concept is mainly used when we go for Database shading.ie.Data is stored in multiple databases of a single Application.
+We have to create a Foreign Data Wrapper so that we can access tables which are in another Databases.
+These tables are called Foreign Tables.
+
+Example:
+Suppose we have a DB Named USER which is a master DB.
+And we have two other Databases USER1 and USER2 which are replica of USER DB.
+If we want to access a table present in Master DB USER we have to create a FDW in Master DB to access that Foreign table in USER Database.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Steps to create and access are given below:
+
+Step 1: 
+Creating Foreign Data Wrapper(FDW):
+CREATE EXTENSION postgres_fdw;
+	or
+CREATE FOREIGN DATA WRAPPER postgres_fdw
+    VALIDATOR "User".postgres_fdw_validator
+    HANDLER "User".postgres_fdw_handler;
+
+-----------------------------------------------------------------
+
+Step 2:
+Create Server
+ 
+For region 1:
+CREATE SERVER fdw_server11
+    FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (dbname 'USER1', host '192.83.123.89', port '5432');
+
+For region 2:
+CREATE SERVER fdw_server21
+    FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (dbname 'USER2', host '192.83.123.89', port '5432');
+
+--------------------------------------------------------------------------
+
+	
+Step 3:
+Creating Foreign Tables named Role1 and Role2 which are present in USER1 and USER2 databases as Role tables.
+
+For region 1:
+CREATE FOREIGN TABLE "SysAdmin"."Role1"
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    role_name character varying(20) COLLATE pg_catalog."default",
+    role_description character varying(50) COLLATE pg_catalog."default",
+    fkoperationalid smallint,
+    is_active boolean,
+    modified_on timestamp without time zone,
+    modified_by integer
+)
+ SERVER fdw_server11
+ OPTIONS (schema_name 'SysAdmin', table_name 'Role');
+ 
+ 
+For region 2:
+CREATE FOREIGN TABLE "SysAdmin"."Role2"
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    role_name character varying(20) COLLATE pg_catalog."default",
+    role_description character varying(50) COLLATE pg_catalog."default",
+    fkoperationalid smallint,
+    is_active boolean,
+    modified_on timestamp without time zone,
+    modified_by integer
+)
+ SERVER fdw_server11
+ OPTIONS (schema_name 'SysAdmin', table_name 'Role');
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+Thus now we can access tables Role of USER1 and USER2 databases in Database USER with Role1 and Role2 as Foreign Tables.
